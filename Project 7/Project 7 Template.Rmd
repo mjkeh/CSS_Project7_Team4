@@ -14,7 +14,8 @@ pacman::p_load(# Tidyverse packages including dplyr and ggplot2
                tidyverse,
                ggthemes,
                augsynth,
-               gsynth)
+               gsynth,
+               rlang)
 
 # set seed
 set.seed(44)
@@ -56,10 +57,30 @@ Create plots and provide 1-2 sentence analyses to answer the following questions
 
 ```{r}
 # highest and lowest uninsured rates
+pre2014 <- medicaid_expansion %>%
+  filter(year <= 2013)
+
+max_uninsured <-medicaid_expansion %>%
+  filter(year == 2013) %>%
+  slice_max(uninsured_rate, n=5)
+
+ggplot(max_uninsured, aes(x = uninsured_rate, colour = State)) +
+  geom_bar()
+
+#texas, nevada, florida, new mexico, georgia
 ```
 
 ```{r}
 # most uninsured Americans
+max_uninsured_pop <-medicaid_expansion %>%
+  filter(year == 2013) %>%
+  mutate(uninsured_pop = population*uninsured_rate) %>%
+  slice_max(uninsured_pop, n=5)
+
+ggplot(max_uninsured_pop, aes(x = uninsured_rate, colour = State)) +
+  geom_bar()
+
+# texas, florida, georgia, cali, ny
 ```
 
 
@@ -74,12 +95,63 @@ Do the following:
 
 ```{r}
 # Parallel Trends plot
+#nevada&florida
+pre2014 %>%
+filter(State %in% c("Nevada","Florida")) %>%
+ggplot() +
+geom_point(aes(x = year,
+y = uninsured_rate,
+color = State)) +
+geom_line(aes(x = year,
+y = uninsured_rate,
+color = State)) +
+theme(axis.title = element_text()) +
+ggtitle('Nevada and Florida Uninsured Rates Before Medicaid') +
+xlab('Year') +
+ylab('Uninsured rate')
+
+#new mexico, georgia
+pre2014 %>%
+filter(State %in% c("New Mexico", "Georgia")) %>%
+ggplot() +
+geom_point(aes(x = year,
+y = uninsured_rate,
+color = State)) +
+geom_line(aes(x = year,
+y = uninsured_rate,
+color = State)) +
+theme(axis.title = element_text()) +
+ggtitle('New Mexico and Georgia Uninsured Rates Before Medicaid') +
+xlab('Year') +
+ylab('Uninsured rate')
+
+
 ```
 
 - Estimates a difference-in-differences estimate of the effect of the Medicaid expansion on the uninsured share of the population. You may follow the lab example where we estimate the differences in one pre-treatment and one post-treatment period, or take an average of the pre-treatment and post-treatment outcomes
 
 ```{r}
+library(tidyr)
 # Difference-in-Differences estimation
+# new mexico-georgia
+nm_ga <- medicaid_expansion %>%
+filter(State %in% c("New Mexico","Georgia")) %>%
+  filter(year >= 2013 & year<= 2014)
+# pre-treatment difference
+pre_diff <- nm_ga %>%
+filter(year == 2013) %>%
+select(State, uninsured_rate) %>%
+spread(State, uninsured_rate) %>%
+summarise(`New Mexico`-`Georgia`)
+# post-treatment difference
+post_diff <- nm_ga %>%
+filter(year == 2014) %>%
+select(State, uninsured_rate) %>%
+spread(State, uninsured_rate) %>%
+summarise(`New Mexico`-`Georgia`)
+# diff-in-diffs
+diff_in_diffs <- post_diff - pre_diff
+diff_in_diffs
 ```
 
 
