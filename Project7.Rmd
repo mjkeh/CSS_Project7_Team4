@@ -75,10 +75,15 @@ min_uninsured <-medicaid_expansion %>%
   slice_min(uninsured_rate, n=5)
 
 ggplot(max_uninsured, aes(x = State, y = uninsured_rate, fill = State)) +
-  geom_col()
+  geom_col()  +
+  theme(axis.title = element_text()) +
+ggtitle('States with the Highest Uninsured Rate of the Population before 2014') +
+ylab('Uninsured rate')
 
 ggplot(min_uninsured, aes(x = State, y = uninsured_rate, fill = State)) +
-  geom_col()
+  geom_col() +
+ggtitle('States with the Lowest Uninsured Rate of the Population before 2014') +
+ylab('Uninsured rate')
 
 #texas, nevada, florida, new mexico, georgia
 
@@ -88,18 +93,32 @@ ggplot(min_uninsured, aes(x = State, y = uninsured_rate, fill = State)) +
 
 
 ```{r}
-# most uninsured Americans
+# most uninsured Americans in 2013
 max_uninsured_pop <-medicaid_expansion %>%
   filter(year == 2013) %>%
   mutate(uninsured_pop = population*uninsured_rate) %>%
   slice_max(uninsured_pop, n=5)
 
-ggplot(max_uninsured_pop, aes(x = State, y = uninsured_rate, fill = State)) +
-  geom_col()
+ggplot(max_uninsured_pop, aes(x = State, y = uninsured_pop, fill = State)) +
+  geom_col() + 
+  theme(axis.title = element_text()) +
+ggtitle('States with the Highest Uninsured Population before 2014') +
+ylab('Uninsured Population')
 
 # texas, florida, georgia, cali, ny
 
-##MJ Q" why only year 2013? should we use "group_by(year) %>% summarize"?
+# most uninsured Americans in 2020
+max_uninsured_pop <-medicaid_expansion %>%
+  filter(year == 2020) %>%
+  mutate(uninsured_pop = population*uninsured_rate) %>%
+  slice_max(uninsured_pop, n=5)
+
+ggplot(max_uninsured_pop, aes(x = State, y = uninsured_pop, fill = State)) +
+  geom_col() + 
+  theme(axis.title = element_text()) +
+ggtitle('States with the Highest Uninsured Population in 2020') +
+ylab('Uninsured Population')
+
 ```
 
 
