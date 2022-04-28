@@ -242,8 +242,9 @@ plot(syn_va)
 ```
 
 
-## Average ATT Estimate (p Value for Joint Null):  -0.009   ( 0.279 )
-## L2 Imbalance: 0.015
+# Reported values
+Average ATT Estimate (p Value for Joint Null):  -0.009   ( 0.279 )
+L2 Imbalance: 0.015
 
 ```{r}
 syn_sum <- summary(syn_va)
@@ -292,8 +293,9 @@ summary(ridge_syn_va)
 plot(ridge_syn_va)
 ```
 
-## Average ATT Estimate (p Value for Joint Null):  -0.007   ( 0.161 )
-## L2 Imbalance: 0.008 => imbalanced reduced!
+# Reported values 
+Average ATT Estimate (p Value for Joint Null):  -0.007   ( 0.161 )
+L2 Imbalance: 0.008 => imbalanced reduced!
 
 ```{r}
 ridge_syn_sum <- summary(ridge_syn_va)
