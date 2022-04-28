@@ -55,6 +55,17 @@ Create plots and provide 1-2 sentence analyses to answer the following questions
 - Which states had the highest uninsured rates prior to 2014? The lowest?
 - Which states were home to most uninsured Americans prior to 2014? How about in the last year in the data set? **Note**: 2010 state population is provided as a variable to answer this question. In an actual study you would likely use population estimates over time, but to simplify you can assume these numbers stay about the same.
 
+
+```{r}
+##MJ added
+
+#explore data
+head(medicaid_expansion)
+summary(medicaid_expansion)
+
+```
+
+
 ```{r}
 # highest and lowest uninsured rates
 pre2014 <- medicaid_expansion %>%
@@ -68,7 +79,13 @@ ggplot(max_uninsured, aes(x = uninsured_rate, colour = State)) +
   geom_bar()
 
 #texas, nevada, florida, new mexico, georgia
+
+
+##MJ Q: why filter (year==2013)? also should we use slice_min() as well?
 ```
+
+
+
 
 ```{r}
 # most uninsured Americans
@@ -81,6 +98,8 @@ ggplot(max_uninsured_pop, aes(x = uninsured_rate, colour = State)) +
   geom_bar()
 
 # texas, florida, georgia, cali, ny
+
+##MJ Q" why only year 2013? should we use "group_by(year) %>% summarize"?
 ```
 
 
@@ -110,6 +129,9 @@ ggtitle('Nevada and Florida Uninsured Rates Before Medicaid') +
 xlab('Year') +
 ylab('Uninsured rate')
 
+
+##MJ Q: Florida's adoption date == NA
+
 #new mexico, georgia
 pre2014 %>%
 filter(State %in% c("New Mexico", "Georgia")) %>%
@@ -125,6 +147,7 @@ ggtitle('New Mexico and Georgia Uninsured Rates Before Medicaid') +
 xlab('Year') +
 ylab('Uninsured rate')
 
+##MJ Q: Georgia's adoption date == NA
 
 ```
 
@@ -176,19 +199,160 @@ Do the following:
 
 ```{r}
 # non-augmented synthetic control
+
+#remove other states that adopted expansion, add in treated indicator for Virginia
+
+medicaid_expansion_va <- medicaid_expansion %>%
+  select(State, Date_Adopted, year, uninsured_rate, population) %>%
+  mutate(adoption_year = as.numeric(as.character(as.Date(Date_Adopted, format = "%Y/%m/%d"), format = "%Y"))) %>% 
+  mutate(treatment = ifelse(State == "Virginia" & adoption_year < year, 1, 0))
+
+head(medicaid_expansion_va)
+
+
 ```
+
+```{r}
+syn_va <- augsynth(uninsured_rate ~ treatment, State, year, medicaid_expansion_va,
+                progfunc = "None", scm = T)
+
+summary(syn_va)
+
+plot(syn_va)
+
+```
+
+
+## Average ATT Estimate (p Value for Joint Null):  -0.009   ( 0.279 )
+## L2 Imbalance: 0.015
+
+```{r}
+syn_sum <- summary(syn_va)
+
+va_synva <- medicaid_expansion_va %>%
+  filter(State == "Virginia") %>%
+  bind_cols(difference = syn_sum$att$Estimate) %>% #Estimate = Actual Uninsured Rate - Synthetic
+  mutate(synthetic_va = uninsured_rate - difference)
+
+# Plot
+
+va_synva %>%
+  ggplot() +
+  geom_point(aes(x = year, 
+                 y = uninsured_rate, 
+                 color = 'Virginia')) +
+  geom_line(aes(x = year, 
+                y = uninsured_rate, 
+                color = 'Virginia')) +
+  geom_point(aes(x = year, 
+                 y = synthetic_va, 
+                 color = 'Synthetic Virginia')) +
+  geom_line(aes(x = year, 
+                y = synthetic_va, 
+                color = 'Synthetic Virginia')) +
+  scale_color_manual(values = c('Virginia' = 'red', 'Synthetic Virginia' = 'blue')) +
+  geom_vline(aes(xintercept = 2019)) +
+  theme_fivethirtyeight() +
+  theme(axis.title = element_text()) +
+  ggtitle('Virginia and Synthetic Virginia') +
+  xlab('Year') +
+  ylab('Uninsured Rate')
+```
+
 
 - Re-run the same analysis but this time use an augmentation (default choices are Ridge, Matrix Completion, and GSynth). Create the same plot and report the average ATT and L2 imbalance.
 
 ```{r}
 # augmented synthetic control
+
+ridge_syn_va <- augsynth(uninsured_rate ~ treatment, State, year, medicaid_expansion_va,
+                progfunc = "ridge", scm = T)
+
+summary(ridge_syn_va)
+
+plot(ridge_syn_va)
 ```
+
+## Average ATT Estimate (p Value for Joint Null):  -0.007   ( 0.161 )
+## L2 Imbalance: 0.008
+
+```{r}
+ridge_syn_sum <- summary(ridge_syn_va)
+
+ridge_va_synva <- medicaid_expansion_va %>%
+  filter(State == "Virginia") %>%
+  bind_cols(difference = syn_sum$att$Estimate) %>% #Estimate = Actual Uninsured Rate - Synthetic
+  mutate(synthetic_va = uninsured_rate - difference)
+
+# Plot
+
+ridge_va_synva %>%
+  ggplot() +
+  geom_point(aes(x = year, 
+                 y = uninsured_rate, 
+                 color = 'Virginia')) +
+  geom_line(aes(x = year, 
+                y = uninsured_rate, 
+                color = 'Virginia')) +
+  geom_point(aes(x = year, 
+                 y = synthetic_va, 
+                 color = 'Synthetic Virginia')) +
+  geom_line(aes(x = year, 
+                y = synthetic_va, 
+                color = 'Synthetic Virginia')) +
+  scale_color_manual(values = c('Virginia' = 'red', 'Synthetic Virginia' = 'blue')) +
+  geom_vline(aes(xintercept = 2019)) +
+  theme_fivethirtyeight() +
+  theme(axis.title = element_text()) +
+  ggtitle('Virginia and Synthetic Virginia') +
+  xlab('Year') +
+  ylab('Uninsured Rate')
+```
+
+
 
 - Plot barplots to visualize the weights of the donors.
 
 ```{r}
 # barplots of weights
+
+##non-augmented synthetic control
+# Convert weights to dataframe
+data.frame(syn_va$weights) %>%
+  # change index to a column
+  tibble::rownames_to_column('State') %>%
+  ggplot() +
+  # stat = identity to take the literal value instead of a count for geom_bar()
+  geom_bar(aes(x = State, 
+               y = syn_va.weights),
+           stat = 'identity') +
+  theme_fivethirtyeight() +
+  theme(axis.title = element_text(),
+        axis.text.x = element_text(angle = 90)) +
+  ggtitle('Synthetic Control Weights') +
+  xlab('State') +
+  ylab('Weight') 
+
+
+##ridge augmented synthetic control
+# Convert weights to dataframe
+data.frame(ridge_syn_va$weights) %>%
+  # change index to a column
+  tibble::rownames_to_column('State') %>%
+  ggplot() +
+  # stat = identity to take the literal value instead of a count for geom_bar()
+  geom_bar(aes(x = State, 
+               y = ridge_syn_va.weights),
+           stat = 'identity') +
+  theme_fivethirtyeight() +
+  theme(axis.title = element_text(),
+        axis.text.x = element_text(angle = 90)) +
+  ggtitle('Augmented Synthetic Control Weights') +
+  xlab('State') +
+  ylab('Weight') 
 ```
+
+## It looks like Rhode Island and Maryland were weighted heavily in the synthetic control, followed by North Carolina and Tenessee. 
 
 **HINT**: Is there any preprocessing you need to do before you allow the program to automatically find weights for donor states?
 
