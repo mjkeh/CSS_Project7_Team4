@@ -1,4 +1,3 @@
-<<<<<<< Updated upstream
 ---
 title: "Project 7: Difference-in-Differences and Synthetic Control"
 output: html_document
@@ -168,6 +167,8 @@ ylab('Uninsured rate')
 
 ##MJ Q: Georgia's adoption date == NA
 ## EG: which states adopted early and which ones didn't?
+
+## EG: there's an error: object 'pre2014' doesn't exist.
 ```
 
 - Estimates a difference-in-differences estimate of the effect of the Medicaid expansion on the uninsured share of the population. You may follow the lab example where we estimate the differences in one pre-treatment and one post-treatment period, or take an average of the pre-treatment and post-treatment outcomes
@@ -227,7 +228,6 @@ medicaid_expansion_va <- medicaid_expansion %>%
   mutate(treatment = ifelse(State == "Virginia" & adoption_year < year, 1, 0))
 
 head(medicaid_expansion_va)
-
 
 ```
 
@@ -461,3 +461,5 @@ syn_time_model_summary$att %>%
 
 
 - What role does selection into treatment play in DiD/synthetic control versus regression discontinuity? When would we want to use either method?
+- **Answer**:
+
