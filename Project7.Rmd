@@ -463,3 +463,6 @@ syn_time_model_summary$att %>%
 - What role does selection into treatment play in DiD/synthetic control versus regression discontinuity? When would we want to use either method?
 - **Answer**:
 
+##EG: answer needed for first question:
+
+##EG: Regression discontinuity is a simpler (and better) approach to use when (a) we are comparing the effect that a given event (ie, the treatment) had on a single group, which can be determined by looking at the pre- and post-treatment values of some measurement, or (b) when comparing the pattern in some measurement for a group that participated in the treatment with the pattern of another group that did not participate. On the other hand, Diff-in-Diff/Syn Control is a more complex (and better) approach to use when comparing units that may have gotten involved in the event (ie, the treatment) at distinct points in time. This approach pays more attention to other potential variables of interests, grouping units that are more similar to each other for better comparisons. 
