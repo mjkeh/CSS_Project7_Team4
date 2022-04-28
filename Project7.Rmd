@@ -276,7 +276,7 @@ plot(ridge_syn_va)
 ```
 
 ## Average ATT Estimate (p Value for Joint Null):  -0.007   ( 0.161 )
-## L2 Imbalance: 0.008
+## L2 Imbalance: 0.008 => imbalanced reduced!
 
 ```{r}
 ridge_syn_sum <- summary(ridge_syn_va)
@@ -360,12 +360,11 @@ data.frame(ridge_syn_va$weights) %>%
 
 ## Discussion Questions
 
-
 - What are the advantages and disadvantages of synthetic control compared to difference-in-differences estimators?
-- **Answer**: 
+- **Answer**: Synthetic control allows to systematically select comparison groups by accounting for the effects of measured and unmeasured confounders changing over time, and by weighting the control group to better match the treatment group before the intervention. However, the credibility of the result relies on achieving a good pre-treatment fit for the outcome of interest between treated group and synthetic control group, which is difficult if the treated unit is an outlier. It is also critical that the synthetic control is built from a pool of potential controls that are similar to the treated group. One limitation of SCM is that traditional statistical inference is inappropriate when there are small number of treated and control units and the fact that units are not sampled probabilistically. 
 
 - One of the benefits of synthetic control is that the weights are bounded between [0,1] and the weights must sum to 1. Augmentation might relax this assumption by allowing for negative weights. Does this create an interpretation problem, and how should we balance this consideration against the improvements augmentation offers in terms of imbalance in the pre-treatment period?
-- **Answer**:
+- **Answer**: Allowing for negative weights makes it hard to interpret what it would mean for a state's data to negatively contribute to the construction of a synthetic control. However, if the study is not concerned about how different states were weighted in creating the synthetic control, augmentation could be preferred especially if it noticeably enhances pre-treatment balance.
 
 # Staggered Adoption Synthetic Control
 
@@ -438,12 +437,20 @@ syn_time_model_summary$att %>%
 - Do you see evidence for the idea that early adopters of Medicaid expansion enjoyed a larger decrease in the uninsured population?
 - **Answer**: The results are somewhat mixed for the subset of states analyzed in our model. That is, those who joined earlier (2014) had a swift and steady decrease in uninsured rates. However, those that joined later (2015) had a slight increase, followed by a huge dip in uninsured rates, reaching levels below those of the early adopters.
 
+
 # General Discussion Questions
 
 - Why are DiD and  synthetic control estimates well suited to studies of aggregated units like cities, states, countries, etc?
 - **Answer**:
+##MJ: When many policy interventions and events of interest in social sciences take place at an aggregate level (cities, states, countries, etc.) and affect a small number of aggregate units, the potential applicability of DiD and synthetic control methods to comparative case studies is very large, especially in situations where traditional regression methods are not appropriate.
+
+
 
 - What role does selection into treatment play in DiD/synthetic control versus regression discontinuity? When would we want to use either method?
+
+
+
+
 =======
 ---
 title: "Project 7: Difference-in-Differences and Synthetic Control"
