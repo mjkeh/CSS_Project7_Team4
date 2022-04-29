@@ -15,7 +15,7 @@ pacman::p_load(# Tidyverse packages including dplyr and ggplot2
                ggthemes,
                augsynth,
                gsynth,
-               rlang, force=TRUE)
+               rlang)
 
 # set seed
 set.seed(44)
@@ -84,12 +84,8 @@ ggplot(min_uninsured, aes(x = State, y = uninsured_rate, fill = State)) +
 ggtitle('States with the Lowest Uninsured Rate of the Population before 2014') +
 ylab('Uninsured rate')
 
-#texas, nevada, florida, new mexico, georgia
-
 ```
-
-
-
+**Comment:** Texas, Florida, Nevada, New Mexico and Georgia are the states with highest uninsured population rate prior to 2014, based on the values in year 2013. Massachusetts, DC, Vermont, Hawaii and Minnesota are the states with lowest uninsured population rate in the same year. 
 
 ```{r}
 # most uninsured Americans in 2013
@@ -119,7 +115,7 @@ ggtitle('States with the Highest Uninsured Population in 2020') +
 ylab('Uninsured Population')
 
 ```
-
+**Comment:** Prior to 2014, states with the highest uninsured population are California, Texas, Florida, New York and Georgia; whereas North Carolina replaces New York in the top 5 states with respect to uninsured population in year 2020.
 
 # Difference-in-Differences Estimation
 
@@ -132,6 +128,9 @@ Do the following:
 
 ```{r}
 # Parallel Trends plot
+pre2014 <- medicaid_expansion %>%
+  filter(year<=2013)
+
 #nevada&florida
 pre2014 %>%
 filter(State %in% c("Nevada","Florida")) %>%
@@ -147,10 +146,7 @@ ggtitle('Nevada and Florida Uninsured Rates Before Medicaid') +
 xlab('Year') +
 ylab('Uninsured rate')
 
-
-##MJ Q: Florida's adoption date == NA
-
-#new mexico, georgia
+#new mexico&georgia
 pre2014 %>%
 filter(State %in% c("New Mexico", "Georgia")) %>%
 ggplot() +
@@ -165,11 +161,8 @@ ggtitle('New Mexico and Georgia Uninsured Rates Before Medicaid') +
 xlab('Year') +
 ylab('Uninsured rate')
 
-##MJ Q: Georgia's adoption date == NA
-## EG: which states adopted early and which ones didn't?
-
-## EG: there's an error: object 'pre2014' doesn't exist.
 ```
+**Comment:** Based on the similarity of uninsured rates before 2014, we first picked Nevada and Florida, one of which (Florida) did not adopt ACA in 2014. However, the parallel trends assumption didn't seem to hold. Then, we tried New Mexico and Georgia (did not adopt ACA), and the trends in uninsured rate seemed to be parallel. 
 
 - Estimates a difference-in-differences estimate of the effect of the Medicaid expansion on the uninsured share of the population. You may follow the lab example where we estimate the differences in one pre-treatment and one post-treatment period, or take an average of the pre-treatment and post-treatment outcomes
 
@@ -196,16 +189,16 @@ summarise(`New Mexico`-`Georgia`)
 diff_in_diffs <- post_diff - pre_diff
 diff_in_diffs
 ```
-
+**Comment:** The difference in uninsured rates between New Mexico and Georgia decreases after 2014, which suggests that ACA adoption decreases uninsured rate in a state, assuming no confounders.
 
 ## Discussion Questions
 
 - Card/Krueger's original piece utilized the fact that towns on either side of the Delaware river are likely to be quite similar to one another in terms of demographics, economics, etc. Why is that intuition harder to replicate with this data?
-- **Answer**:
+- **Answer**: This data is at the state level so we cannot compare towns on different sides of the Delaware River.
+If we were to compare states rather than towns; Delaware River separates NY and NY, NJ and Pennsylvania, and NY and Pennsylvania. We cannot compare NY&NJ because they adopt ACA at the same time. We also cannot compare NJ&Pennsylvania and NY&Pennsylvania because Pennsylvania adopts ACA a year after NY and NJ but we cannot use a synthetic control design due to limited number of units.
 
 - What are the strengths and weaknesses of using the parallel trends assumption in difference-in-differences estimates?
-- **Answer**:
-
+- **Answer**: In this case, our parallel trends assumption relies on uninsured rates at the state level, which could be affected by many other regulatory changes other than adoption of ACA, which we do not have data on. In general, lack of data on factors that might affect the outcome independent of treatment creates the problem that the change in parallel trends might be due to other factors than treatment.
 
 # Synthetic Control
 
@@ -463,8 +456,6 @@ syn_time_model_summary$att %>%
 
 
 - What role does selection into treatment play in DiD/synthetic control versus regression discontinuity? When would we want to use either method?
-- **Answer**:
+- **Answer**: In Did/synthetic control designs, we care about the probability of treatment based on pre-treatment values of the outcome for multiple units treated at different points (or untreated altogether) to account for selection into treatment. In RD, selection into treatment is less of a concern as the treatment and control groups are the same unit; just in different points in time, before and after treatment. 
 
-##EG: answer needed for first question:
-
-##EG: Regression discontinuity is a simpler (and better) approach to use when (a) we are comparing the effect that a given event (ie, the treatment) had on a single group, which can be determined by looking at the pre- and post-treatment values of some measurement, or (b) when comparing the pattern in some measurement for a group that participated in the treatment with the pattern of another group that did not participate. On the other hand, Diff-in-Diff/Syn Control is a more complex (and better) approach to use when comparing units that may have gotten involved in the event (ie, the treatment) at distinct points in time. This approach pays more attention to other potential variables of interests, grouping units that are more similar to each other for better comparisons. 
+Regression discontinuity is a simpler (and better) approach to use when (a) we are comparing the effect that a given event (ie, the treatment) had on a single group, which can be determined by looking at the pre- and post-treatment values of some measurement, or (b) when comparing the pattern in some measurement for a group that participated in the treatment with the pattern of another group that did not participate. On the other hand, Diff-in-Diff/Syn Control is a more complex (and better) approach to use when comparing units that may have gotten involved in the event (ie, the treatment) at distinct points in time. This approach pays more attention to other potential variables of interests, grouping units that are more similar to each other for better comparisons. 
